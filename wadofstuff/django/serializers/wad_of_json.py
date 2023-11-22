@@ -6,8 +6,10 @@ try:
 except:
     import json as simplejson
 
-from python import Serializer as PythonSerializer
-from django.core.serializers.json import DjangoJSONEncoder, Deserializer as JSONDeserializer
+from django.core.serializers.json import Deserializer as JSONDeserializer
+from django.core.serializers.json import DjangoJSONEncoder
+
+from .python import Serializer as PythonSerializer
 
 
 class Serializer(PythonSerializer):

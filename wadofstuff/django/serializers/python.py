@@ -4,10 +4,12 @@ Full Python serializer for Django.
 Applied patch from http://code.google.com/p/wadofstuff/issues/detail?id=4
 by stur...@gmail.com, Apr 7, 2009.
 """
-import base
-from django.utils.encoding import smart_unicode, is_protected_type
 from django.core.serializers.python import Deserializer as PythonDeserializer
 from django.db import models
+from django.utils.encoding import is_protected_type, smart_str
+
+from . import base
+
 
 class Serializer(base.Serializer):
     """
@@ -52,8 +54,8 @@ class Serializer(base.Serializer):
         Called when serializing of an object ends.
         """
         self.objects.append({
-            "model"  : smart_unicode(obj._meta),
-            "pk"     : smart_unicode(obj._get_pk_val(), strings_only=True),
+            "model"  : smart_str(obj._meta),
+            "pk"     : smart_str(obj._get_pk_val(), strings_only=True),
             "fields" : self._fields
         })
         if self._extras:
@@ -101,11 +103,11 @@ class Serializer(base.Serializer):
                         related = related._get_pk_val()
                     else:
                         # Related to remote object via other field
-                        related = smart_unicode(getattr(related,
+                        related = smart_str(getattr(related,
                             field.rel.field_name), strings_only=True)
                 self._fields[fname] = related
         else:
-            self._fields[fname] = smart_unicode(related, strings_only=True)
+            self._fields[fname] = smart_str(related, strings_only=True)
 
     def handle_m2m_field(self, obj, field):
         """
@@ -130,7 +132,7 @@ class Serializer(base.Serializer):
                 if self.use_natural_keys and hasattr(field.rel.to, 'natural_key'):
                     m2m_value = lambda value: value.natural_key()
                 else:
-                    m2m_value = lambda value: smart_unicode(
+                    m2m_value = lambda value: smart_str(
                         value._get_pk_val(), strings_only=True)
                 self._fields[fname] = [m2m_value(related)
                     for related in getattr(obj, fname).iterator()]
@@ -150,9 +152,9 @@ class Serializer(base.Serializer):
         if hasattr(obj, field):
             extra = getattr(obj, field)
             if callable(extra):
-                self._extras[field] = smart_unicode(extra(), strings_only=True)
+                self._extras[field] = smart_str(extra(), strings_only=True)
             else:
-                self._extras[field] = smart_unicode(extra, strings_only=True)
+                self._extras[field] = smart_str(extra, strings_only=True)
 
     # Reverse serialization code
 
@@ -179,7 +181,7 @@ class Serializer(base.Serializer):
             #
             # emulate the original behaviour and serialize to a list of ids
             # self._fields[fname] = [
-            # smart_unicode(related._get_pk_val(), strings_only=True)
+            # smart_str(related._get_pk_val(), strings_only=True)
             # for related in getattr(obj, fname).iterator()]
 
     def handle_related_fk_field(self, obj, field_name):
@@ -211,9 +213,9 @@ class Serializer(base.Serializer):
                 #
                 # emulate the original behaviour and serialize to a list of ids
                 # self._fields[fname] = [
-                # smart_unicode(related._get_pk_val(), strings_only=True)
+                # smart_str(related._get_pk_val(), strings_only=True)
                 # for related in getattr(obj, fname).iterator()]
         else:
-            self._fields[fname] = smart_unicode(related, strings_only=True)
+            self._fields[fname] = smart_str(related, strings_only=True)
 
 Deserializer = PythonDeserializer

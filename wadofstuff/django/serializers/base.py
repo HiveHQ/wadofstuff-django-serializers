@@ -4,12 +4,10 @@ New base serializer class to handle full serialization of model objects.
 Applied patch from http://code.google.com/p/wadofstuff/issues/detail?id=4
 by stur...@gmail.com, Apr 7, 2009.
 """
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+from io import StringIO
 
 from django.core.serializers import base
+
 
 class Serializer(base.Serializer):
     """Serializer for Django models inspired by Ruby on Rails serializer.
