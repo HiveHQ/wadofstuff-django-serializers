@@ -4,12 +4,10 @@ New base serializer class to handle full serialization of model objects.
 Applied patch from http://code.google.com/p/wadofstuff/issues/detail?id=4
 by stur...@gmail.com, Apr 7, 2009.
 """
-try:
-    from cStringIO import StringIO
-except ImportError:
-    from StringIO import StringIO
+from io import StringIO
 
 from django.core.serializers import base
+
 
 class Serializer(base.Serializer):
     """Serializer for Django models inspired by Ruby on Rails serializer.
@@ -64,13 +62,28 @@ class Serializer(base.Serializer):
                         if not self.fields or field.attname in self.fields:
                             self.handle_m2m_field(obj, field)
             # relations patch
-            related_fk_objects = obj._meta.get_all_related_objects()
+            if hasattr(obj._meta, 'get_all_related_objects'):
+                related_fk_objects = obj._meta.get_all_related_objects()
+            else:
+                related_fk_objects = [
+                    f for f in obj._meta.get_fields()
+                    if (f.one_to_many or f.one_to_one) and
+                    f.auto_created and
+                    not f.concrete
+                ]
             for ro in related_fk_objects:
                 field_name = ro.get_accessor_name()
                 if field_name not in self.excludes:
                     self.handle_related_fk_field(obj, field_name)
 
-            related_m2m_objects = obj._meta.get_all_related_many_to_many_objects()
+            if hasattr(obj._meta, 'get_all_related_many_to_many_objects'):
+                related_m2m_objects = obj._meta.get_all_related_many_to_many_objects()
+            else:
+                related_m2m_objects = [
+                    f for f in obj._meta.get_fields(include_hidden=True)
+                    if f.many_to_many and f.auto_created
+                ]
+
             for ro in related_m2m_objects:
                 field_name = ro.get_accessor_name()
                 if field_name not in self.excludes:

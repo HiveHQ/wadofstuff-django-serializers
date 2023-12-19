@@ -1,18 +1,29 @@
 """
 Serialize data to/from JSON
 """
-from django.utils import simplejson
-from python import Serializer as PythonSerializer
-from django.core.serializers.json import Deserializer as JSONDeserializer, \
-    DjangoJSONEncoder
+try:
+    from django.utils import simplejson
+except:
+    import json as simplejson
+
+from django.core.serializers.json import Deserializer as JSONDeserializer
+from django.core.serializers.json import DjangoJSONEncoder
+
+from .python import Serializer as PythonSerializer
+
+
 class Serializer(PythonSerializer):
     """
     Convert a queryset to JSON.
     """
     def end_serialization(self):
         """Output a JSON encoded queryset."""
-        simplejson.dump(self.objects, self.stream, cls=DjangoJSONEncoder,
-            **self.options)
+        simplejson.dump(
+            self.objects,
+            self.stream,
+            cls=DjangoJSONEncoder,
+            **self.options
+        )
 
     def getvalue(self):
         """
